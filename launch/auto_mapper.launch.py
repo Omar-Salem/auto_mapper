@@ -52,7 +52,6 @@ def create_robot_node() -> list:
         launch_arguments={'use_sim_time': is_sim, 'slam_params_file': slam_params_file}.items()
     )
 
-    # map_yaml_file = PathJoinSubstitution([FindPackageShare(package_name), "maps", "apt.yaml"])
     navigation_launch_file_path = PathJoinSubstitution(
         [FindPackageShare(package_name), 'launch', 'bringup_launch.py'])
     nav2_bringup = IncludeLaunchDescription(
