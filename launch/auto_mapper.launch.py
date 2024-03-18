@@ -57,6 +57,10 @@ def create_robot_node() -> list:
         PythonLaunchDescriptionSource(navigation_launch_file_path),
         launch_arguments={'map': map_path, 'use_sim_time': is_sim, 'package_name': package_name}.items()
     )
+    package_share = FindPackageShare(package_name)
+    rviz_config_file = PathJoinSubstitution(
+        [package_share, "rviz", "two_wheels.rviz"]
+    )
     return [
         # robot_localization,
         GroupAction(
@@ -70,6 +74,7 @@ def create_robot_node() -> list:
                     executable="rviz2",
                     name="rviz2",
                     output="log",
+                    arguments=["-d", rviz_config_file]
                 )
             ]
         )
