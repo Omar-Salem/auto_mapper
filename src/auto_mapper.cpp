@@ -103,18 +103,9 @@ private:
     Subscription<PoseWithCovarianceStamped>::SharedPtr poseSubscription_;
     PoseWithCovarianceStamped::UniquePtr pose_;
 
+    array<unsigned char, 256> costTranslationTable_ = initTranslationTable();
 
-    struct Frontier {
-        Point centroid;
-        vector<Point> points;
-    };
-
-    void poseTopicCallback(PoseWithCovarianceStamped::UniquePtr pose) {
-        pose_ = move(pose);
-        RCLCPP_INFO(get_logger(), "poseTopicCallback...");
-    }
-
-    array<unsigned char, 256> initTranslationTable() {
+    static array<unsigned char, 256> initTranslationTable() {
         array<unsigned char, 256> cost_translation_table{};
 
         // lineary mapped from [0..100] to [0..255]
@@ -132,7 +123,15 @@ private:
         return cost_translation_table;
     }
 
-    array<unsigned char, 256> costTranslationTable_ = initTranslationTable();
+    struct Frontier {
+        Point centroid;
+        vector<Point> points;
+    };
+
+    void poseTopicCallback(PoseWithCovarianceStamped::UniquePtr pose) {
+        pose_ = move(pose);
+        RCLCPP_INFO(get_logger(), "poseTopicCallback...");
+    }
 
     void updateFullMap(OccupancyGrid::UniquePtr occupancyGrid) {
         RCLCPP_INFO(get_logger(), "updateFullMap...");
