@@ -38,6 +38,7 @@ def create_robot_node() -> list:
         package=package_name,
         executable="auto_mapper",
         name="auto_mapper",
+        parameters=["map_path", map_path]
     )
 
     slam_toolbox_launch_file_path = PathJoinSubstitution(

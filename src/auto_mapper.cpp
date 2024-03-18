@@ -69,8 +69,9 @@ public:
     AutoMapper()
             : Node("auto_mapper") {
         RCLCPP_INFO(get_logger(), "AutoMapper started...");
+//        declare_parameter("map_path", rclcpp::PARAMETER_STRING);
 
-        poseSubscription_ = this->create_subscription<PoseWithCovarianceStamped>(
+        poseSubscription_ = create_subscription<PoseWithCovarianceStamped>(
                 "/pose", 10, bind(&AutoMapper::poseTopicCallback, this, _1));
 
         mapSubscription_ = create_subscription<OccupancyGrid>(
@@ -82,8 +83,10 @@ public:
                 "/navigate_to_pose");
 
         poseNavigator_->wait_for_action_server();
-        mapPath_ = this->get_parameter("map_path").as_string();
-        RCLCPP_INFO(get_logger(), "AutoMapper Finished...");
+        RCLCPP_INFO(get_logger(), "AutoMapper poseNavigator_");
+        mapPath_ = "~/map";
+//        mapPath_ = get_parameter("map_path").as_string();
+        RCLCPP_INFO(get_logger(), "AutoMapper Finished...%s", mapPath_.c_str());
     }
 
 private:
