@@ -134,8 +134,8 @@ private:
     }
 
     void updateFullMap(OccupancyGrid::UniquePtr occupancyGrid) {
-        RCLCPP_INFO(get_logger(), "updateFullMap...");
         if (pose_ == nullptr) { return; }
+        RCLCPP_INFO(get_logger(), "updateFullMap...");
         const auto occupancyGridInfo = occupancyGrid->info;
         unsigned int size_in_cells_x = occupancyGridInfo.width;
         unsigned int size_in_cells_y = occupancyGridInfo.height;
@@ -206,8 +206,11 @@ private:
 
     void stop() {
         RCLCPP_INFO(get_logger(), "Stopped...");
+        poseSubscription_.reset();
+        mapSubscription_.reset();
         poseNavigator_->async_cancel_all_goals();
         saveMap();
+        clearMarkers();
     }
 
     void explore() {
@@ -356,9 +359,7 @@ private:
         return false;
     }
 
-    Frontier buildNewFrontier(unsigned int neighborCell,
-                              unsigned int robotCell,
-                              vector<bool> &frontier_flag) {
+    Frontier buildNewFrontier(unsigned int neighborCell, vector<bool> &frontier_flag) {
         Frontier output;
         output.centroid.x = 0;
         output.centroid.y = 0;
@@ -445,7 +446,7 @@ private:
                     // neighbour)
                 } else if (isNewFrontierCell(nbr, frontier_flag)) {
                     frontier_flag[nbr] = true;
-                    Frontier new_frontier = buildNewFrontier(nbr, pos, frontier_flag);
+                    Frontier new_frontier = buildNewFrontier(nbr, frontier_flag);
                     if (new_frontier.points.size() * costmap_.getResolution() >=
                         minFrontierSize_) {
                         frontier_list.push_back(new_frontier);
