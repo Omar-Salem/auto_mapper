@@ -63,7 +63,6 @@ def create_robot_node() -> list:
         [package_share, "rviz", "two_wheels.rviz"]
     )
     return [
-        # robot_localization,
         GroupAction(
             actions=[
                 SetRemap(src='/cmd_vel', dst='/diff_drive_controller/cmd_vel_unstamped'),

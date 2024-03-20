@@ -43,13 +43,13 @@ ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
 
 ### Gotchas
 * If you receive `Failed to write file: Exception output stream error`, change the map file path to a dir where write access is granted.
-* To use with a custom robot, or if the Twist messages aren't published to `/cmd_vel`, uncomment `SetRemap(src='/cmd_vel', dst='/diff_drive_controller/cmd_vel_unstamped')` in `auto_mapper.launch.py`
+* To use with a custom robot, or if the Twist messages aren't published to `/cmd_vel`, uncomment `SetRemap(src='/cmd_vel', dst='{/your/custom_cmd_vel}}')` in `auto_mapper.launch.py`
 
-## Contact
+### Contact
 
 Omar Salem - [LinkedIn](https://www.linkedin.com/in/omar-salem-4564a590/)
 
 
 
-## Acknowledgements
+### Acknowledgements
 * [m-explore](https://github.com/hrnr/m-explore)
