@@ -25,6 +25,17 @@ def generate_launch_description():
                              )
 
 
+def create_slam_toolbox_node(package_name: str, is_sim: LaunchConfiguration, map_path: LaunchConfiguration) -> object:
+    launch_file_path = PathJoinSubstitution(
+        [FindPackageShare(package_name), 'launch', 'online_async_launch.py'])
+    params_file = PathJoinSubstitution(
+        [FindPackageShare(package_name), "config", "mapper_params_online_async.yaml"])
+    return IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(launch_file_path),
+        launch_arguments={'use_sim_time': is_sim, 'slam_params_file': params_file, 'map_file_name': map_path}.items()
+    )
+
+
 def create_robot_node() -> list:
     """
 
@@ -43,15 +54,6 @@ def create_robot_node() -> list:
         ]
     )
 
-    slam_toolbox_launch_file_path = PathJoinSubstitution(
-        [FindPackageShare(package_name), 'launch', 'online_async_launch.py'])
-    slam_params_file = PathJoinSubstitution(
-        [FindPackageShare(package_name), "config", "mapper_params_online_async.yaml"])
-    slam_toolbox = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(slam_toolbox_launch_file_path),
-        launch_arguments={'use_sim_time': is_sim, 'slam_params_file': slam_params_file}.items()
-    )
-
     navigation_launch_file_path = PathJoinSubstitution(
         [FindPackageShare(package_name), 'launch', 'bringup_launch.py'])
     nav2_bringup = IncludeLaunchDescription(
@@ -66,7 +68,7 @@ def create_robot_node() -> list:
         GroupAction(
             actions=[
                 SetRemap(src='/cmd_vel', dst='/diff_drive_controller/cmd_vel_unstamped'),
-                slam_toolbox,
+                create_slam_toolbox_node(package_name, is_sim, map_path),
                 nav2_bringup,
                 auto_mapper,
                 Node(
