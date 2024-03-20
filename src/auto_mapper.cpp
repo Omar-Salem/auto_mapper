@@ -250,12 +250,12 @@ private:
 
         send_goal_options.result_callback = [this](const GoalHandleNavigateToPose::WrappedResult &result) {
             isExploring_ = false;
+            saveMap();
+            clearMarkers();
+            explore();
             switch (result.code) {
                 case rclcpp_action::ResultCode::SUCCEEDED:
                     RCLCPP_INFO(get_logger(), "Goal reached");
-                    saveMap();
-                    clearMarkers();
-                    explore();
                     break;
                 case rclcpp_action::ResultCode::ABORTED:
                     RCLCPP_ERROR(get_logger(), "Goal was aborted");
