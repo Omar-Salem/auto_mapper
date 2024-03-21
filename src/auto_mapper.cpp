@@ -88,7 +88,8 @@ public:
     }
 
 private:
-    double minFrontierSize_ = 0.8;
+    const double MIN_FRONTIER_SIZE = 0.8;
+    const int MIN_FREE_THRESHOLD = 4;
     Costmap2D costmap_;
     rclcpp_action::Client<NavigateToPose>::SharedPtr poseNavigator_;
     Publisher<MarkerArray>::SharedPtr markerArrayPublisher_;
@@ -286,73 +287,48 @@ private:
         auto saveMapResult = map_saver->async_send_request(saveMapRequest);
     }
 
-    vector<unsigned int> nhood4(unsigned int idx) {
-        // get 4-connected neighbourhood indexes, check for edge of map
-        vector<unsigned int> out;
-
-        unsigned int size_x_ = costmap_.getSizeInCellsX(),
-                size_y_ = costmap_.getSizeInCellsY();
-
-        if (idx > size_x_ * size_y_ - 1) {
-            RCLCPP_WARN(get_logger(), "Evaluating nhood for offmap point");
-            return out;
-        }
-
-        if (idx % size_x_ > 0) {
-            out.push_back(idx - 1);
-        }
-        if (idx % size_x_ < size_x_ - 1) {
-            out.push_back(idx + 1);
-        }
-        if (idx >= size_x_) {
-            out.push_back(idx - size_x_);
-        }
-        if (idx < size_x_ * (size_y_ - 1)) {
-            out.push_back(idx + size_x_);
-        }
-        return out;
-    }
-
     vector<unsigned int> nhood8(unsigned int idx) {
-        // get 8-connected neighbourhood indexes, check for edge of map
-        vector<unsigned int> out = nhood4(idx);
-
-        unsigned int size_x_ = costmap_.getSizeInCellsX(),
-                size_y_ = costmap_.getSizeInCellsY();
-
-        if (idx > size_x_ * size_y_ - 1) {
-            return out;
+        unsigned int mx, my;
+        vector<unsigned int> out;
+        costmap_.indexToCells(idx, mx, my);
+        const int x = mx;
+        const int y = my;
+        const pair<int, int> directions[] = {
+                pair(-1, -1),
+                pair(-1, 1),
+                pair(1, -1),
+                pair(1, 1),
+                pair(1, 0),
+                pair(-1, 0),
+                pair(0, 1),
+                pair(0, -1)
+        };
+        for (const auto &d: directions) {
+            int newX = x + d.first;
+            int newY = y + d.second;
+            if (newX > -1 && newX < costmap_.getSizeInCellsX() &&
+                newY > -1 && newY < costmap_.getSizeInCellsY()) {
+                out.push_back(costmap_.getIndex(newX, newY));
+            }
         }
-
-        if (idx % size_x_ > 0 && idx >= size_x_) {
-            out.push_back(idx - 1 - size_x_);
-        }
-        if (idx % size_x_ > 0 && idx < size_x_ * (size_y_ - 1)) {
-            out.push_back(idx - 1 + size_x_);
-        }
-        if (idx % size_x_ < size_x_ - 1 && idx >= size_x_) {
-            out.push_back(idx + 1 - size_x_);
-        }
-        if (idx % size_x_ < size_x_ - 1 && idx < size_x_ * (size_y_ - 1)) {
-            out.push_back(idx + 1 + size_x_);
-        }
-
         return out;
     }
 
-    bool isNewFrontierCell(unsigned int idx,
-                           const vector<bool> &frontier_flag) {
+    bool isAchievableFrontierCell(unsigned int idx,
+                                  const vector<bool> &frontier_flag) {
         auto map = costmap_.getCharMap();
         // check that cell is unknown and not already marked as frontier
         if (map[idx] != NO_INFORMATION || frontier_flag[idx]) {
             return false;
         }
 
-        // frontier cells should have at least one cell in 4-connected neighbourhood
-        // that is free
-        for (unsigned int nbr: nhood4(idx)) {
+        //check there's enough free space for robot to move to frontier
+        int freeCount = 0;
+        for (unsigned int nbr: nhood8(idx)) {
             if (map[nbr] == FREE_SPACE) {
-                return true;
+                if (++freeCount >= MIN_FREE_THRESHOLD) {
+                    return true;
+                }
             }
         }
 
@@ -374,7 +350,7 @@ private:
             // try adding cells in 8-connected neighborhood to frontier
             for (unsigned int nbr: nhood8(idx)) {
                 // check if neighbour is a potential frontier cell
-                if (isNewFrontierCell(nbr, frontier_flag)) {
+                if (isAchievableFrontierCell(nbr, frontier_flag)) {
                     // mark cell as frontier
                     frontier_flag[nbr] = true;
                     unsigned int mx, my;
@@ -435,8 +411,7 @@ private:
             unsigned int idx = bfs.front();
             bfs.pop();
 
-            // iterate over 4-connected neighbourhood
-            for (unsigned nbr: nhood4(idx)) {
+            for (unsigned nbr: nhood8(idx)) {
                 // add to queue all free, unvisited cells, use descending search in case
                 // initialized on non-free cell
                 if (map_[nbr] == FREE_SPACE && !visited_flag[nbr]) {
@@ -444,11 +419,11 @@ private:
                     bfs.push(nbr);
                     // check if cell is new frontier cell (unvisited, NO_INFORMATION, free
                     // neighbour)
-                } else if (isNewFrontierCell(nbr, frontier_flag)) {
+                } else if (isAchievableFrontierCell(nbr, frontier_flag)) {
                     frontier_flag[nbr] = true;
                     Frontier new_frontier = buildNewFrontier(nbr, frontier_flag);
                     if (new_frontier.points.size() * costmap_.getResolution() >=
-                        minFrontierSize_) {
+                        MIN_FRONTIER_SIZE) {
                         frontier_list.push_back(new_frontier);
                     }
                 }
