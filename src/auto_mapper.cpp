@@ -88,7 +88,7 @@ public:
     }
 
 private:
-    const double MIN_FRONTIER_SIZE = 0.8;
+    const double MIN_FRONTIER_DENSITY = 0.5;
     const int MIN_FREE_THRESHOLD = 4;
     Costmap2D costmap_;
     rclcpp_action::Client<NavigateToPose>::SharedPtr poseNavigator_;
@@ -423,7 +423,7 @@ private:
                     frontier_flag[nbr] = true;
                     Frontier new_frontier = buildNewFrontier(nbr, frontier_flag);
                     if (new_frontier.points.size() * costmap_.getResolution() >=
-                        MIN_FRONTIER_SIZE) {
+                        MIN_FRONTIER_DENSITY) {
                         frontier_list.push_back(new_frontier);
                     }
                 }
