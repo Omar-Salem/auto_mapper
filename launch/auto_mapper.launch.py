@@ -62,12 +62,12 @@ def create_robot_node() -> list:
     )
     package_share = FindPackageShare(package_name)
     rviz_config_file = PathJoinSubstitution(
-        [package_share, "rviz", "two_wheels.rviz"]
+        [package_share, "rviz", "config.rviz"]
     )
     return [
         GroupAction(
             actions=[
-                SetRemap(src='/cmd_vel', dst='/diff_drive_controller/cmd_vel_unstamped'),
+                # SetRemap(src='/cmd_vel', dst='/diff_drive_controller/cmd_vel_unstamped'),
                 create_slam_toolbox_node(package_name, is_sim, map_path),
                 nav2_bringup,
                 auto_mapper,
