@@ -98,7 +98,6 @@ private:
     Subscription<OccupancyGrid>::SharedPtr mapSubscription_;
     bool isExploring_ = false;
     int markerId_;
-    unordered_set<string> blackList_;
     string mapPath_;
 
 
@@ -128,6 +127,7 @@ private:
     struct Frontier {
         Point centroid;
         vector<Point> points;
+        string getKey() const{to_string(centroid.x) + "," + to_string(centroid.y);}
     };
 
     void poseTopicCallback(PoseWithCovarianceStamped::UniquePtr pose) {
@@ -190,9 +190,9 @@ private:
             m.id = ++markerId_;
             m.type = Marker::SPHERE;
             m.pose.position = frontier.centroid;
-            m.scale.x = 0.5;
-            m.scale.y = 0.5;
-            m.scale.z = 0.5;
+            m.scale.x = 0.3;
+            m.scale.y = 0.3;
+            m.scale.z = 0.3;
             m.color = green;
             markers.push_back(m);
             markerArrayPublisher_->publish(markersMsg_);
@@ -240,7 +240,6 @@ private:
                 isExploring_ = true;
             } else {
                 RCLCPP_ERROR(get_logger(), "Goal was rejected by server");
-                blackList_.insert(to_string(frontier.centroid.x) + "," + to_string(frontier.centroid.y));
             }
         };
 
@@ -422,14 +421,14 @@ private:
                     // neighbour)
                 } else if (isAchievableFrontierCell(nbr, frontier_flag)) {
                     frontier_flag[nbr] = true;
-                    Frontier new_frontier = buildNewFrontier(nbr, frontier_flag);
+                    const Frontier frontier = buildNewFrontier(nbr, frontier_flag);
 
-                    double distance = sqrt(pow((double(new_frontier.centroid.x) - double(position.x)), 2.0) +
-                                           pow((double(new_frontier.centroid.y) - double(position.y)), 2.0));
+                    double distance = sqrt(pow((double(frontier.centroid.x) - double(position.x)), 2.0) +
+                                           pow((double(frontier.centroid.y) - double(position.y)), 2.0));
                     if (distance < MIN_DISTANCE_TO_FRONTIER) { continue; }
-                    if (new_frontier.points.size() * costmap_.getResolution() >=
+                    if (frontier.points.size() * costmap_.getResolution() >=
                         MIN_FRONTIER_DENSITY) {
-                        frontier_list.push_back(new_frontier);
+                        frontier_list.push_back(frontier);
                     }
                 }
             }
