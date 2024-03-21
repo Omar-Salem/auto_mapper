@@ -1,7 +1,7 @@
 <h3 align="center">auto_mapper</h3>
 
   <p align="center">
-    Package for auto exploring frontiers with ROS 2 Humble / Iron
+    Package for auto exploring frontiers and generating a map with ROS 2 Humble / Iron
   </p>
 
 ### Prerequisites
