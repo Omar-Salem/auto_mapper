@@ -88,7 +88,8 @@ public:
     }
 
 private:
-    const double MIN_FRONTIER_DENSITY = 0.5;
+    const double MIN_FRONTIER_DENSITY = 0.3;
+    const double MIN_DISTANCE_TO_FRONTIER = 1.0;
     const int MIN_FREE_THRESHOLD = 4;
     Costmap2D costmap_;
     rclcpp_action::Client<NavigateToPose>::SharedPtr poseNavigator_;
@@ -422,6 +423,10 @@ private:
                 } else if (isAchievableFrontierCell(nbr, frontier_flag)) {
                     frontier_flag[nbr] = true;
                     Frontier new_frontier = buildNewFrontier(nbr, frontier_flag);
+
+                    double distance = sqrt(pow((double(new_frontier.centroid.x) - double(position.x)), 2.0) +
+                                           pow((double(new_frontier.centroid.y) - double(position.y)), 2.0));
+                    if (distance < MIN_DISTANCE_TO_FRONTIER) { continue; }
                     if (new_frontier.points.size() * costmap_.getResolution() >=
                         MIN_FRONTIER_DENSITY) {
                         frontier_list.push_back(new_frontier);
