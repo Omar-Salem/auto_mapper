@@ -4,6 +4,8 @@
     Package for auto exploring frontiers and generating a map with ROS 2 Humble / Iron
   </p>
 
+<video src="Demo.mp4" width="320" height="240" controls></video>
+
 ### Prerequisites
 
 * [ROS 2 Humble / Iron](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html) on your Ubuntu 22.04
