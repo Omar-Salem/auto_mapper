@@ -36,7 +36,7 @@ colcon build --packages-select auto_mapper
 ros2 launch auto_mapper auto_mapper.launch.py map_path:=~/map
 ```
 
-4. Launch turtlebot3
+5. Launch turtlebot3
 ```sh
 export TURTLEBOT3_MODEL=burger
 ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
